@@ -30,7 +30,7 @@ func ExecuteCommand(c *gin.Context) {
 	cmd := exec.Command(cmdParts[0], cmdParts[1:]...)
 
 	// set maximum execution time
-	timeout := 10 * time.Second
+	timeout := 360 * time.Second
 	if request.Timeout != nil && *request.Timeout > 0 {
 		timeout = time.Duration(*request.Timeout) * time.Second
 	}
