@@ -55,7 +55,17 @@ func ExecuteCommand(c *gin.Context) {
 			c.AbortWithError(408, errors.New("command execution timeout"))
 			return
 		}
-		c.AbortWithError(400, err)
+		if exitError, ok := err.(*exec.ExitError); ok {
+			c.JSON(200, ExecuteResponse{
+				Code:   exitError.ExitCode(),
+				Result: string(output),
+			})
+			return
+		}
+		c.JSON(200, ExecuteResponse{
+			Code:   -1,
+			Result: string(output),
+		})
 		return
 	}
 

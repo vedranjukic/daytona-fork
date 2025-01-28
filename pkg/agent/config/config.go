@@ -15,14 +15,19 @@ import (
 )
 
 type DaytonaServerConfig struct {
-	Url    string `envconfig:"DAYTONA_SERVER_URL" validate:"required"`
-	ApiKey string `envconfig:"DAYTONA_SERVER_API_KEY" validate:"required"`
-	ApiUrl string `envconfig:"DAYTONA_SERVER_API_URL" validate:"required"`
+	//	Url    string `envconfig:"DAYTONA_SERVER_URL" validate:"required"`
+	//	ApiKey string `envconfig:"DAYTONA_SERVER_API_KEY" validate:"required"`
+	//	ApiUrl string `envconfig:"DAYTONA_SERVER_API_URL" validate:"required"`
+
+	Url    string `envconfig:"DAYTONA_SERVER_URL"`
+	ApiKey string `envconfig:"DAYTONA_SERVER_API_KEY"`
+	ApiUrl string `envconfig:"DAYTONA_SERVER_API_URL"`
 }
 
 type Config struct {
-	ProjectDir  string
-	ClientId    string  `envconfig:"DAYTONA_CLIENT_ID" validate:"required"`
+	ProjectDir string
+	//	ClientId    string  `envconfig:"DAYTONA_CLIENT_ID" validate:"required"`
+	ClientId    string  `envconfig:"DAYTONA_CLIENT_ID"`
 	ProjectName string  `envconfig:"DAYTONA_WS_PROJECT_NAME"`
 	WorkspaceId string  `envconfig:"DAYTONA_WS_ID" validate:"required"`
 	LogFilePath *string `envconfig:"DAYTONA_AGENT_LOG_FILE_PATH"`
@@ -65,11 +70,11 @@ func GetConfig(mode Mode) (*Config, error) {
 		return nil, err
 	}
 
-	if config.Mode == ModeProject {
-		if config.ProjectName == "" {
-			return nil, errors.New("DAYTONA_WS_PROJECT_NAME is required in project mode")
-		}
-	}
+	// if config.Mode == ModeProject {
+	// 	if config.ProjectName == "" {
+	// 		return nil, errors.New("DAYTONA_WS_PROJECT_NAME is required in project mode")
+	// 	}
+	// }
 
 	config.LogFilePath = GetLogFilePath()
 

@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/config"
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/fs"
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/git"
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/lsp"
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/process"
-	"github.com/daytonaio/daytona/pkg/api"
-	"github.com/daytonaio/daytona/pkg/api/middlewares"
+	"github.com/daytonaio/daytona/pkg/agent/toolbox/process/session"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
@@ -38,10 +39,13 @@ func (s *Server) GetProjectDir(ctx *gin.Context) {
 func (s *Server) Start() error {
 	r := gin.New()
 	r.Use(gin.Recovery())
-	r.Use(middlewares.LoggingMiddleware())
-	binding.Validator = new(api.DefaultValidator)
+	// r.Use(middlewares.LoggingMiddleware())
+	binding.Validator = new(DefaultValidator)
 
 	r.GET("/project-dir", s.GetProjectDir)
+
+	configDir := "/var/log/daytona"
+	os.MkdirAll(configDir, 0755)
 
 	fsController := r.Group("/files")
 	{
@@ -66,6 +70,15 @@ func (s *Server) Start() error {
 	processController := r.Group("/process")
 	{
 		processController.POST("/execute", process.ExecuteCommand)
+
+		sessionController := processController.Group("/session")
+		{
+			sessionController.GET("", session.ListSessions)
+			sessionController.POST("", session.CreateSession(s.ProjectDir, configDir))
+			sessionController.POST("/:sessionId/exec", session.SessionExecuteCommand(configDir))
+			sessionController.DELETE("/:sessionId", session.DeleteSession(configDir))
+			sessionController.GET("/:sessionId/command/:commandId/logs", session.GetSessionCommandLogs(configDir))
+		}
 	}
 
 	gitController := r.Group("/git")
