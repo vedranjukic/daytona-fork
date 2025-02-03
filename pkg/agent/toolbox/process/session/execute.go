@@ -6,7 +6,6 @@ package session
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -20,19 +19,34 @@ import (
 	"github.com/google/uuid"
 )
 
+// Add a standard error response struct
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
 func SessionExecuteCommand(configDir string) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		sessionId := c.Param("sessionId")
+		if sessionId == "" {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Error: "session id is required"})
+			return
+		}
 
 		var request SessionExecuteRequest
 		if err := c.ShouldBindJSON(&request); err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
+			c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+			return
+		}
+
+		// Validate command is not empty (if not already handled by binding)
+		if strings.TrimSpace(request.Command) == "" {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Error: "command cannot be empty"})
 			return
 		}
 
 		session, ok := sessions[sessionId]
 		if !ok {
-			c.AbortWithError(http.StatusNotFound, errors.New("session not found"))
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: "session not found"})
 			return
 		}
 
@@ -49,15 +63,18 @@ func SessionExecuteCommand(configDir string) func(c *gin.Context) {
 
 		logFilePath := command.LogFilePath(session.Dir(configDir))
 
-		err := os.MkdirAll(filepath.Dir(logFilePath), 0755)
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+		if err := os.MkdirAll(filepath.Dir(logFilePath), 0755); err != nil {
+			c.JSON(http.StatusInternalServerError, ErrorResponse{
+				Error: fmt.Sprintf("failed to create log directory: %v", err),
+			})
 			return
 		}
 
-		logFile, err = os.Create(logFilePath)
+		logFile, err := os.Create(logFilePath)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, ErrorResponse{
+				Error: fmt.Sprintf("failed to create log file: %v", err),
+			})
 			return
 		}
 
@@ -107,7 +124,9 @@ func SessionExecuteCommand(configDir string) func(c *gin.Context) {
 
 		_, err = session.stdinWriter.Write([]byte(cmdToExec))
 		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
+			c.JSON(http.StatusInternalServerError, ErrorResponse{
+				Error: fmt.Sprintf("failed to write command: %v", err),
+			})
 			return
 		}
 

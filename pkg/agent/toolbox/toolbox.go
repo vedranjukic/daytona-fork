@@ -5,9 +5,11 @@ package toolbox
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"os"
+	"path"
 
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/config"
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/fs"
@@ -18,7 +20,6 @@ import (
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/process/session"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 )
 
 type Server struct {
@@ -38,6 +39,9 @@ func (s *Server) GetProjectDir(ctx *gin.Context) {
 }
 
 func (s *Server) Start() error {
+	// Set Gin to release mode in production
+	gin.SetMode(gin.ReleaseMode)
+
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(middlewares.LoggingMiddleware())
@@ -45,8 +49,15 @@ func (s *Server) Start() error {
 
 	r.GET("/project-dir", s.GetProjectDir)
 
-	configDir := "/var/log/daytona"
+	dirname, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	configDir := path.Join(dirname, ".daytona")
 	os.MkdirAll(configDir, 0755)
+
+	log.Println("configDir", configDir)
 
 	fsController := r.Group("/files")
 	{
