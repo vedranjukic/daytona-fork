@@ -44,6 +44,8 @@ const (
 	ModeProject Mode = "project"
 )
 
+var DEFAULT_LOG_FILE_PATH = "/tmp/daytona-agent.log"
+
 var config *Config
 
 func GetConfig(mode Mode) (*Config, error) {
@@ -84,7 +86,7 @@ func GetConfig(mode Mode) (*Config, error) {
 func GetLogFilePath() *string {
 	logFilePath, ok := os.LookupEnv("DAYTONA_AGENT_LOG_FILE_PATH")
 	if !ok {
-		return nil
+		return &DEFAULT_LOG_FILE_PATH
 	}
 
 	logFilePath = strings.Replace(logFilePath, "(HOME)", os.Getenv("HOME"), 1)

@@ -27,9 +27,7 @@ func (f *logFormatter) Format(entry *log.Entry) ([]byte, error) {
 		}
 	}
 
-	// Return the original message without log decoration
-	// We don't want decoration to show up in the workspace creation logs
-	return []byte(entry.Message + "\n"), nil
+	return []byte(formatted), nil
 }
 
 func (s *Agent) initLogs() {

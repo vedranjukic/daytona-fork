@@ -13,6 +13,7 @@ import (
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/fs"
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/git"
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/lsp"
+	"github.com/daytonaio/daytona/pkg/agent/toolbox/middlewares"
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/process"
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/process/session"
 
@@ -39,7 +40,7 @@ func (s *Server) GetProjectDir(ctx *gin.Context) {
 func (s *Server) Start() error {
 	r := gin.New()
 	r.Use(gin.Recovery())
-	// r.Use(middlewares.LoggingMiddleware())
+	r.Use(middlewares.LoggingMiddleware())
 	binding.Validator = new(DefaultValidator)
 
 	r.GET("/project-dir", s.GetProjectDir)

@@ -19,8 +19,6 @@ import (
 )
 
 func main() {
-	setLogLevel()
-
 	agentMode := config.ModeProject
 
 	if hostModeFlag {
@@ -47,10 +45,11 @@ func main() {
 	if c.LogFilePath != nil {
 		logFile, err := os.OpenFile(*c.LogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			panic(err)
+			log.Error("Failed to open log file at ", *c.LogFilePath)
+		} else {
+			defer logFile.Close()
+			agentLogWriter = logFile
 		}
-		defer logFile.Close()
-		agentLogWriter = logFile
 	}
 
 	toolBoxServer := &toolbox.Server{
@@ -71,20 +70,6 @@ func main() {
 }
 
 var hostModeFlag bool
-
-func setLogLevel() {
-	agentLogLevel := os.Getenv("AGENT_LOG_LEVEL")
-	if agentLogLevel != "" {
-		level, err := log.ParseLevel(agentLogLevel)
-		if err != nil {
-			log.Errorf("Invalid log level: %s, defaulting to info level", agentLogLevel)
-			level = log.InfoLevel
-		}
-		log.SetLevel(level)
-	} else {
-		log.SetLevel(log.InfoLevel)
-	}
-}
 
 func init() {
 	logLevel := log.WarnLevel
