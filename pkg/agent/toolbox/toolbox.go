@@ -76,7 +76,9 @@ func (s *Server) Start() error {
 			sessionController.GET("", session.ListSessions)
 			sessionController.POST("", session.CreateSession(s.ProjectDir, configDir))
 			sessionController.POST("/:sessionId/exec", session.SessionExecuteCommand(configDir))
+			sessionController.GET("/:sessionId", session.GetSession)
 			sessionController.DELETE("/:sessionId", session.DeleteSession(configDir))
+			sessionController.GET("/:sessionId/command/:commandId", session.GetSessionCommand)
 			sessionController.GET("/:sessionId/command/:commandId/logs", session.GetSessionCommandLogs(configDir))
 		}
 	}

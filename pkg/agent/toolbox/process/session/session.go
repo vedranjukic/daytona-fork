@@ -105,3 +105,37 @@ func ListSessions(c *gin.Context) {
 
 	c.JSON(http.StatusOK, sessionDTOs)
 }
+
+func GetSession(c *gin.Context) {
+	sessionId := c.Param("sessionId")
+
+	session, ok := sessions[sessionId]
+	if !ok {
+		c.AbortWithError(http.StatusNotFound, errors.New("session not found"))
+		return
+	}
+
+	c.JSON(http.StatusOK, Session{
+		SessionId: sessionId,
+		Commands:  slices.Collect(maps.Values(session.commands)),
+	})
+}
+
+func GetSessionCommand(c *gin.Context) {
+	sessionId := c.Param("sessionId")
+	cmdId := c.Param("commandId")
+
+	session, ok := sessions[sessionId]
+	if !ok {
+		c.AbortWithError(http.StatusNotFound, errors.New("session not found"))
+		return
+	}
+
+	command, ok := session.commands[cmdId]
+	if !ok {
+		c.AbortWithError(http.StatusNotFound, errors.New("command not found"))
+		return
+	}
+
+	c.JSON(http.StatusOK, command)
+}
