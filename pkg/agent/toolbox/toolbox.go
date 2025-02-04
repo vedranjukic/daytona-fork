@@ -20,6 +20,7 @@ import (
 	"github.com/daytonaio/daytona/pkg/agent/toolbox/process/session"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 type Server struct {
